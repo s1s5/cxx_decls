@@ -51,4 +51,6 @@ std::vector<std::string> get_names();
  * @end
  */
 
+template<class X> void echo_hoge(const X &x);
+
 #endif  // GLOBAL_FUNCTIONS_HPP_

@@ -1,4 +1,4 @@
-from cxx_decls_extractor-base
+from cxx_decls-base
 
 ADD cxx /opt/source/cxx_decls_extractor
 RUN mkdir -p /opt/build/cxx_decls_extractor
@@ -11,4 +11,8 @@ ADD py /opt/source/cxx_decls_blueboss
 WORKDIR /opt/source/cxx_decls_blueboss
 RUN python setup.py install
 
-WORKDIR /
+RUN mkdir /work
+WORKDIR /work
+
+ADD docker/entrypoint.py /opt/
+ENTRYPOINT ["python", "/opt/entrypoint.py"]
