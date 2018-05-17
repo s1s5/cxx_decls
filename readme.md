@@ -1,9 +1,30 @@
 # cxx decls extractor
 
-docker run -t -i --rm -v ~/work/cxx_decls_extractor/test:/tmp/test s1s5/cxx_decls clang -Xclang -load -Xclang /usr/local/lib/CXXDeclsExtractor.so -Xclang -plugin -Xclang print-decls -std=c++1z /tmp/test/example_000.hpp > a.json
+## USAGE
+
+### cxx header files -> json
+``` shell
+$ docker run -i --rm -v <project_root>:/work s1s5/cxx_decls json <compile flags> <header file> > <output.json>
+
+### e.g)
+$ docker run -i --rm -v `pwd`:/work s1s5/cxx_decls json -std=c++1z examples/global_functions.hpp > a.json
+```
 
 
-docker run -t -i --rm -v /tmp/conv_java/output:/output -v `pwd`:/tmp/source/ s1s5/cxx_decls python -m blueboss.conv_java --libname test --dst-dir /output --default-package com.example --jni-filename /output/jniex.cpp /tmp/source/a.json
+### json files -> java interfaces
 
-docker run -t -i --rm -v /tmp/conv_objc/output:/output -v `pwd`:/tmp/source/ s1s5/cxx_decls python -m blueboss.conv_objc --dst-header /output/objc.h --dst-source /output/objc.mm /tmp/source/a.json
+``` shell
+$ docker run -i --rm -v <project_root>:/work s1s5/cxx_decls java <package name> <library name> <json files> > <output.tar>
 
+### e.g)
+$ docker run -i --rm -v `pwd`:/work s1s5/cxx_decls java com.example test a.json > /tmp/test.tar
+```
+
+### json files -> objc interfaces
+
+``` shell
+$ docker run -i --rm -v <project_root>:/work s1s5/cxx_decls objc <objc filename> <json files> > <output.tar>
+
+### e.g)
+$ docker run -i --rm -v `pwd`:/work s1s5/cxx_decls objc cxx2objc a.json > /tmp/test.tar
+```
