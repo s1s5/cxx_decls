@@ -31,8 +31,7 @@ def isString(cxx_type):
         return CONST_CHAR_PTR
     elif (isinstance(cxx_type, bc.TemplateSpecializationType) and
           isinstance(cxx_type.sugar, bc.RecordType) and
-          (cxx_type.sugar.decl.path == 'std::basic_string' or
-           cxx_type.sugar.decl.path == 'std::__1::basic_string') and
+          (bc.is_std_string(cxx_type.sugar.decl)) and
           len(cxx_type.args) >= 1 and
           isinstance(cxx_type.args[0].type, bc.BuiltinType) and
           (cxx_type.args[0].type.spelling == 'char' or
@@ -78,8 +77,7 @@ def getString(cxx_type):
         return cxx_type
     elif (isinstance(cxx_type, bc.TemplateSpecializationType) and
           isinstance(cxx_type.sugar, bc.RecordType) and
-          (cxx_type.sugar.decl.path == 'std::basic_string' or
-           cxx_type.sugar.decl.path == 'std::__1::basic_string') and
+          (bc.is_std_string(cxx_type.sugar.decl)) and
           len(cxx_type.args) >= 1 and
           isinstance(cxx_type.args[0].type, bc.BuiltinType) and
           (cxx_type.args[0].type.spelling == 'char' or
@@ -115,8 +113,7 @@ def parseString(cxx_type):
     is_const = False
     if (isinstance(cxx_type, bc.TemplateSpecializationType) and
         isinstance(cxx_type.sugar, bc.RecordType) and
-        (cxx_type.sugar.decl.path == 'std::basic_string' or
-         cxx_type.sugar.decl.path == 'std::__1::basic_string')and
+        (bc.is_std_string(cxx_type.sugar.decl)) and
         len(cxx_type.args) >= 1 and
         isinstance(cxx_type.args[0].type, bc.BuiltinType) and
             cxx_type.args[0].type.spelling == 'char'):

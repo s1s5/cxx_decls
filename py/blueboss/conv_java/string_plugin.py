@@ -17,6 +17,7 @@ def isString(cxx_type):
             c = c or t.isConstQualified
         return c
     is_const = False
+
     if (isinstance(cxx_type, bc.PointerType) and
             isinstance(cxx_type.pointeeType, bc.BuiltinType) and
             cxx_type.pointeeType.spelling == 'char' and
@@ -24,7 +25,7 @@ def isString(cxx_type):
         return True
     elif (isinstance(cxx_type, bc.TemplateSpecializationType) and
           isinstance(cxx_type.sugar, bc.RecordType) and
-          cxx_type.sugar.decl.path == 'std::basic_string' and
+          bc.is_std_string(cxx_type.sugar.decl) and
           len(cxx_type.args) == 1 and
           isinstance(cxx_type.args[0].type, bc.BuiltinType) and
           (cxx_type.args[0].type.spelling == 'char' or
@@ -59,7 +60,7 @@ def parseString(cxx_type):
     is_const = False
     if (isinstance(cxx_type, bc.TemplateSpecializationType) and
         isinstance(cxx_type.sugar, bc.RecordType) and
-        cxx_type.sugar.decl.path == 'std::basic_string' and
+        bc.is_std_string(cxx_type.sugar.decl) and
         len(cxx_type.args) == 1 and
         isinstance(cxx_type.args[0].type, bc.BuiltinType) and
             cxx_type.args[0].type.spelling == 'char'):

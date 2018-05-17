@@ -32,8 +32,7 @@ def isVector(cxx_type):
     #         cxx_type.sugar.decl.path == 'std::vector' and
     #         isinstance(cxx_type.args[0].type, bc.RecordType)))
     if (isinstance(cxx_type, bc.TemplateSpecializationType) and
-        (cxx_type.sugar.decl.path == 'std::vector' or
-         cxx_type.sugar.decl.path == 'std::__1::vector')):
+            (bc.is_std_vector(cxx_type.sugar.decl))):
         # print "=" * 80
         # print cxx_type
         # print cxx_type.args[0].type

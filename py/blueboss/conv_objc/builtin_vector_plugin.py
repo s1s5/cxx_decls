@@ -1,6 +1,7 @@
 # coding: utf-8
 from blueboss import common as bc
 from blueboss import writer as bw
+import base
 import plugin
 import arg_converter
 import return_converter
@@ -23,8 +24,7 @@ def isBuiltinVector(cxx_type):
         # print cxx_type, is_const
         if (isinstance(cxx_type, bc.TemplateSpecializationType) and
                 is_const and (
-                    cxx_type.sugar.decl.path == 'std::vector' or
-                    cxx_type.sugar.decl.path == 'std::__1::vector') and
+                    bc.is_std_vector(cxx_type.sugar.decl)) and
                 isinstance(cxx_type.args[0].type, bc.BuiltinType)):
             return cxx_type.args[0].type.spelling
         else:
@@ -39,7 +39,7 @@ def isBuiltinVector(cxx_type):
 
     if (isinstance(cxx_type, bc.TemplateSpecializationType) and
         (cxx_type.sugar.decl.path == 'std::vector' or
-         cxx_type.sugar.decl.path == 'std::__1::vector') and
+         base.vector_regex.match(cxx_type.sugar.decl.path)) and
             isinstance(cxx_type.args[0].type, bc.BuiltinType)):
         return cxx_type.args[0].type.spelling
     return False

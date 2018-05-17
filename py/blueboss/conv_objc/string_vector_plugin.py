@@ -27,8 +27,7 @@ def isVector(cxx_type):
         cxx_type = cxx_type.namedType
 
     if (isinstance(cxx_type, bc.TemplateSpecializationType) and
-        (cxx_type.sugar.decl.path == 'std::vector' or
-         cxx_type.sugar.decl.path == 'std::__1::vector')):
+            (bc.is_std_vector(cxx_type.sugar.decl))):
         is_const = is_const or cxx_type.isConstQualified
         if is_lvalue and not is_const:
             return False, None, None

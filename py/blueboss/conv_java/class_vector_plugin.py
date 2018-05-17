@@ -29,12 +29,12 @@ def isVector(cxx_type):
 
     # print type(cxx_type), cxx_type
     # print (isinstance(cxx_type, bc.TemplateSpecializationType) and
-    #         cxx_type.sugar.decl.path == 'std::vector')
+    #         bc.is_std_vector(cxx_type.sugar.decl))
     # print ((isinstance(cxx_type, bc.TemplateSpecializationType) and
-    #         cxx_type.sugar.decl.path == 'std::vector' and
+    #         bc.is_std_vector(cxx_type.sugar.decl) and
     #         isinstance(cxx_type.args[0].type, bc.RecordType)))
     if (isinstance(cxx_type, bc.TemplateSpecializationType) and
-            cxx_type.sugar.decl.path == 'std::vector' and
+            bc.is_std_vector(cxx_type.sugar.decl) and
         isinstance(base.eraseTypedef(cxx_type.args[0].type),
                    bc.RecordType)):
         is_const = is_const or cxx_type.isConstQualified

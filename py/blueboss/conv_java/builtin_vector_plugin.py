@@ -17,7 +17,7 @@ def isBuiltinVector(cxx_type):
         is_const = is_const or cxx_type.isConstQualified
         # print cxx_type, is_const
         if (isinstance(cxx_type, bc.TemplateSpecializationType) and
-                is_const and cxx_type.sugar.decl.path == 'std::vector' and
+                is_const and bc.is_std_vector(cxx_type.sugar.decl) and
                 isinstance(cxx_type.args[0].type, bc.BuiltinType)):
             return True
         else:
@@ -25,7 +25,7 @@ def isBuiltinVector(cxx_type):
     if (isinstance(cxx_type, bc.ElaboratedType)):
         cxx_type = cxx_type.namedType
     if (isinstance(cxx_type, bc.TemplateSpecializationType) and
-            cxx_type.sugar.decl.path == 'std::vector' and
+            bc.is_std_vector(cxx_type.sugar.decl) and
             isinstance(cxx_type.args[0].type, bc.BuiltinType)):
         return True
     return False

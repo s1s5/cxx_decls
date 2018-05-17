@@ -3,6 +3,7 @@ import sys
 import json
 import inspect
 import StringIO
+import re
 
 
 class T(object):
@@ -1139,6 +1140,22 @@ class IdentifierInfo(ClangRoot):
 
 class Expr(ClangRoot):
     pass
+
+
+vector_regex = re.compile('std::.*::vector')
+string_regex = re.compile('std::.*::(basic_)?string')
+
+
+def is_std_vector(decl):
+    return (
+        decl.path == 'std::vector' or
+        vector_regex.match(decl.path))
+
+
+def is_std_string(decl):
+    return (
+        decl.path == 'std::string' or
+        string_regex.match(decl.path))
 
 
 builtin_types = {
