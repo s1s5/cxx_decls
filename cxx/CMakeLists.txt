@@ -13,9 +13,9 @@ include_directories(src ext)
 
 file(GLOB SRC "src/*.cpp")
 
-add_library(CXXDeclsExtractor SHARED tool/to_json.cpp ${SRC})
+add_library(CXXDeclsExtractor SHARED ${SRC})
 SET_TARGET_PROPERTIES(CXXDeclsExtractor PROPERTIES PREFIX "")
 # add_subdirectory(src)
 INSTALL(TARGETS CXXDeclsExtractor LIBRARY DESTINATION lib)
-INSTALL(FILES cxx_decls_extractor-config.cmake DESTINATION share/cxx_decls_extractor/cmake)
-INSTALL(FILES cxx_decls_extractor-config.sh DESTINATION bin)
+# INSTALL(FILES cxx_decls_extractor-config.cmake DESTINATION share/cxx_decls_extractor/cmake)
+# INSTALL(FILES cxx_decls_extractor-config.sh DESTINATION bin)

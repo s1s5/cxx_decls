@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-#include "picojson/picojson.h"
+#include "picojson.h"
 
 class Json {
  public:
