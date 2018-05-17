@@ -12,7 +12,7 @@ class ArgConverter(converter.Converter):
     def getArgName(self):
         if self.__an is None:
             if not self.arg.name:
-                return "arg"
+                return "arg{}".format(self.__arg_index)
             return self.arg.name
         return self.__an
 
@@ -39,3 +39,6 @@ class ArgConverter(converter.Converter):
 
     def dumpCCallPost(self, source):
         pass
+
+    def setIndex(self, index):
+        self.__arg_index = index

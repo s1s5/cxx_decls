@@ -42,8 +42,10 @@ class FunctionConverter(converter.Converter):
         return self.creator.getReturnConverter(self.decl.returnType, self)
 
     def getArgConverters(self):
-        return map(lambda x: self.creator.getArgConverter(x, self),
-                   self.decl.params)
+        converters = map(lambda x: self.creator.getArgConverter(x, self),
+                         self.decl.params)
+        [x.setIndex(i) for i, x in enumerate(converters)]
+        return converters
 
     def getFuncTuple(self):
         ret = self.return_converter.getObjCType()
