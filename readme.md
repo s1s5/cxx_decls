@@ -2,6 +2,10 @@
 
 ## USAGE
 
+``` shell
+$ DOCKER_CONTENT_TRUST=0 docker pull s1s5/cxx_decls
+```
+
 ### cxx header files -> json
 ``` shell
 $ docker run -i --rm -v <project_root>:/work s1s5/cxx_decls json <compile flags> <header file> > <output.json>
