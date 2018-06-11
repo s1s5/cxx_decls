@@ -90,7 +90,11 @@ std::string util::getAbsPath(const clang::NamedDecl *decl) {
     std::stringstream ss;
     auto ns = util::getDeclContext(decl);
     for (auto &&s : ns) {
-        ss << s << "::";
+        if (s != "") {
+            ss << s << "::";
+        } else {
+            ss << "bb_usr_anonymous_namespace" << "::";
+        }
     }
     ss << decl->getNameAsString();
     return ss.str();
