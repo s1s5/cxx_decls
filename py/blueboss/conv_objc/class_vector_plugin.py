@@ -39,6 +39,8 @@ def isVector(cxx_type):
         # print "=" * 80
         if isinstance(cxx_type.args[0].type, bc.BuiltinType):
             raise Exception()
+        elif isinstance(cxx_type.args[0].type, bc.PointerType):
+            return False, None, None
 
         is_const = is_const or cxx_type.isConstQualified
         if is_lvalue and not is_const:
