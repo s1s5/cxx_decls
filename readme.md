@@ -3,7 +3,7 @@
 ## USAGE
 
 ``` shell
-$ DOCKER_CONTENT_TRUST=0 docker pull s1s5/cxx_decls
+$ docker pull --disable-content-trust s1s5/cxx_decls
 ```
 
 ### cxx header files -> json
@@ -32,3 +32,7 @@ $ docker run -i --rm -v <project_root>:/work s1s5/cxx_decls objc <objc filename>
 ### e.g)
 $ docker run -i --rm -v `pwd`:/work s1s5/cxx_decls objc cxx2objc a.json > /tmp/test.tar
 ```
+
+
+## DEBUG
+docker run -i --rm -e PYTHONPATH=/work/py -v `pwd`:/work s1s5/cxx_decls objc cxx2objc a.json

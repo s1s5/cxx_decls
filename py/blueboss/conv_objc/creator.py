@@ -58,6 +58,7 @@ class Creator(plugin.Plugin):
     def addPlugin(self, p):
         if not issubclass(p, plugin.Plugin):
             raise TypeError()
+        p.creator = self
         self.plugin_types.append(p)
 
     def __selectPlugin(self, name, fi, *args):

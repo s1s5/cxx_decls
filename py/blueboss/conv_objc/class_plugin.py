@@ -30,7 +30,7 @@ class BridgeClass(objc_class.ObjCClass):
         k = super(BridgeClass, self).objcSourceHeader()
         if self.impl:
             k << bw.objc.Property(
-                self.impl.path, '*i', "_bb_get_impl_", "_bb_set_impl_")
+                self.impl.cname(), '*i', "_bb_get_impl_", "_bb_set_impl_")
         return k
 
     def objcSourcePublic(self):
@@ -38,19 +38,19 @@ class BridgeClass(objc_class.ObjCClass):
         if self.impl:
             p = self.creator.getPlugin(ClassPlugin)
             children = p.listChildren(self.impl)
-            f = bw.objc.Func(self.impl.path + '*', "_bb_get_impl_", [])
+            f = bw.objc.Func(self.impl.cname() + '*', "_bb_get_impl_", [])
             for idx, i in enumerate(children):
                 cond = 'self->tag == %d' % getTag(self, i)
                 if idx == 0:
                     ii = bw.objc.If(cond)
                 else:
                     ii = bw.objc.ElseIf(cond)
-                ii << "return reinterpret_cast<%s*>(self->impl);" % i.path
+                ii << "return reinterpret_cast<%s*>(self->impl);" % i.cname()
                 f << ii
-            f << "return reinterpret_cast<%s*>(self->impl);" % self.impl.path
+            f << "return reinterpret_cast<%s*>(self->impl);" % self.impl.cname()
             k << f
             f = bw.objc.Func("void", '_bb_set_impl_',
-                             [('arg', self.impl.path + '*', 'arg')])
+                             [('arg', self.impl.cname() + '*', 'arg')])
             f << "self->tag = %d;" % getTag(self, self.impl)
             f << "self->impl = arg;"
             k << f
@@ -73,6 +73,12 @@ def parseType(decl_or_type):
         decl_or_type = decl_or_type.decl
     if not isinstance(decl_or_type, bc.RecordDecl):
         decl_or_type = None
+        # print("-" * 80)
+        # print(decl.path)
+        # print(decl.type)
+        # print(type(decl.type))
+    # if isinstance(decl_or_type, bc.ClassTemplateSpecializationDecl):
+    #     decl_or_type = None
     return decl_or_type, is_const
 
 
@@ -139,7 +145,7 @@ class ClassReturnConverter(return_converter.ReturnConverter):
 
     def dumpCReturn(self, source):
         decl, is_const = parseType(self.cxx_type)
-        cc = 'const_cast<%s*>' % decl.path
+        cc = 'const_cast<%s*>' % decl.cname()
         source << "_ret_val->tag = %d;" % getTag(self, decl)
         if isinstance(self.cxx_type, bc.LValueReferenceType):
             source << "_ret_val->impl = %s(&(_ret_));" % cc
@@ -150,7 +156,7 @@ class ClassReturnConverter(return_converter.ReturnConverter):
             source << "_ret_val->ref = self;"
             source << "_ret_val->is_ref = YES;"
         else:
-            source << "_ret_val->impl = new %s(_ret_);" % (decl.path, )
+            source << "_ret_val->impl = new %s(_ret_);" % (decl.cname(), )
             source << "_ret_val->is_ref = NO;"
         source << "return _ret_val;"
 
@@ -247,12 +253,23 @@ class ClassPlugin(plugin.Plugin):
         return isinstance(decl, bc.RecordDecl)
 
     def resolveClass(self, decl):
+        template_args = []
+        # print("-" * 80)
+        # print(decl)
+        # decl.show()
+        if hasattr(decl, 'decl') and isinstance(decl.decl, bc.ClassTemplateSpecializationDecl):
+            template_args = decl.decl.templateArgs
         decl, is_const = parseType(decl)
         l = decl.path.split('::')
         if is_const:
             l[-1] = 'Const' + l[-1]
         # if len(l) == 1:
         l[0] = self.creator.settings['global_prefix'] + l[0]
+        if template_args:
+            for i in template_args:
+                _, n = self.creator.resolveClass(i.type)
+                l.append(n)
+
         n = '_'.join(l)
         return BridgeClass, n
 
@@ -281,7 +298,6 @@ class ClassPlugin(plugin.Plugin):
     def declare(self, decl):
         if not isinstance(decl, bc.RecordDecl):
             return False
-        # decl.show()
         if decl.describedClassTemplate is not None:
             return False
         if decl.access != "public" and decl.access != "none":
