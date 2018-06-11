@@ -11,6 +11,6 @@ cd ${script_dir}
 docker tag s1s5/llvm:50 cxx_decls-base
 docker build -f docker/Dockerfile -t s1s5/cxx_decls .
 
-# docker tag s1s5/cxx_decls opencv-base
-# cd opencv
-# docker build -f Dockerfile -t s1s5/cxx_decls:with_opencv .
+docker tag s1s5/llvm:50_with_opencv cxx_decls-base
+docker build -f docker/Dockerfile -t s1s5/cxx_decls:with_opencv .
+

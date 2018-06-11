@@ -11,7 +11,7 @@ ADD py /opt/source/cxx_decls_blueboss
 WORKDIR /opt/source/cxx_decls_blueboss
 RUN python setup.py install
 
-RUN mkdir /work
+RUN mkdir -p /work
 WORKDIR /work
 
 ADD docker/entrypoint.py /opt/
