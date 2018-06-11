@@ -147,6 +147,9 @@ class StringArgConverter(arg_converter.ArgConverter):
 
 
 class StringReturnConverter(return_converter.ReturnConverter):
+    def getCType(self):
+        return "std::string"
+
     def dumpCReturn(self, source):
         s = "_ret_"
         if isString(self.cxx_type) == CXX_STRING:
