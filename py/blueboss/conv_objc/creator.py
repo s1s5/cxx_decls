@@ -58,7 +58,7 @@ class Creator(plugin.Plugin):
     def addPlugin(self, p):
         if not issubclass(p, plugin.Plugin):
             raise TypeError()
-        p.creator = self
+        # p.creator = self
         self.plugin_types.append(p)
 
     def __selectPlugin(self, name, fi, *args):
@@ -218,6 +218,8 @@ class Creator(plugin.Plugin):
             return source << x if x else source
 
         for i in sorted(self.class_map):
+            if i == '':
+                continue
             header_internal << bw.objc.ClassDecl(
                 i, self.class_map[i].isProtocol())
 
