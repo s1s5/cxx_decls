@@ -77,8 +77,8 @@ def parseType(decl_or_type):
         # print(decl.path)
         # print(decl.type)
         # print(type(decl.type))
-    # if isinstance(decl_or_type, bc.ClassTemplateSpecializationDecl):
-    #     decl_or_type = None
+    if isinstance(decl_or_type, bc.ClassTemplateSpecializationDecl):
+        decl_or_type = None
     return decl_or_type, is_const
 
 
@@ -403,48 +403,60 @@ class ClassPlugin(plugin.Plugin):
         if not d:
             return
         self.classes.add(d)
+        self.class_indexes[d] = len(self.class_indexes)
 
     def linkEnd(self):
         l = sorted(self.classes, key=lambda x: x.path)
-        m = {}
-        for idx, decl in enumerate(l):
-            m[decl] = idx
-        self.class_indexes = m
+        # m = {}
+        # for idx, decl in enumerate(l):
+        #     m[decl] = idx
+        # self.class_indexes = m
 
+        processed = []
         tmp_map = {}
-        for decl in self.classes:
-            cc = bc.RecordType(decl, isConstQualified=True)
-            nc = bc.RecordType(decl, isConstQualified=False)
-            cc = self.creator.getClass(cc)
-            nc = self.creator.getClass(nc)
+        while True:
+            l = list(self.classes.difference(processed))
+            if not l:
+                break
 
-            if True or cc.funcs:
-                ccp = self.creator.getClass(
-                    'Api_' + cc.name, objc_class.ObjCProtocol)
-                map(ccp.addFunction, cc.funcs)
-                cc.addProtocol(ccp)
+            # self.class_indexes = {}
+            # for decl in l:
+            #     self.class_indexes[decl] = len(self.class_indexes)
 
-            else:
-                ccp = None
-            if True or nc.funcs:
-                ncp = self.creator.getClass(
-                    'Api_' + nc.name, objc_class.ObjCProtocol)
-                map(ncp.addFunction, nc.funcs)
-                nc.addProtocol(ncp)
-            else:
-                ncp = None
-            tmp_map[decl] = cc, nc, ccp, ncp
+            for decl in l:
+                cc = bc.RecordType(decl, isConstQualified=True)
+                nc = bc.RecordType(decl, isConstQualified=False)
+                cc = self.creator.getClass(cc)
+                nc = self.creator.getClass(nc)
 
-            if decl.access != "public" and decl.access != "none":
-                cc.setValid(False)
-                nc.setValid(False)
-            if not self.hasPublicDefaultConstructor(decl):
-                cc.hasDelete(False)
+                if True or cc.funcs:
+                    ccp = self.creator.getClass(
+                        'Api_' + cc.name, objc_class.ObjCProtocol)
+                    map(ccp.addFunction, cc.funcs)
+                    cc.addProtocol(ccp)
 
-            cc.addBase(self.creator.getBaseClass())
-            cc.setImpl(decl)
-            nc.addBase(cc)
-            nc.priority = 10
+                else:
+                    ccp = None
+                if True or nc.funcs:
+                    ncp = self.creator.getClass(
+                        'Api_' + nc.name, objc_class.ObjCProtocol)
+                    map(ncp.addFunction, nc.funcs)
+                    nc.addProtocol(ncp)
+                else:
+                    ncp = None
+                tmp_map[decl] = cc, nc, ccp, ncp
+
+                if decl.access != "public" and decl.access != "none":
+                    cc.setValid(False)
+                    nc.setValid(False)
+                if not self.hasPublicDefaultConstructor(decl):
+                    cc.hasDelete(False)
+
+                cc.addBase(self.creator.getBaseClass())
+                cc.setImpl(decl)
+                nc.addBase(cc)
+                nc.priority = 10
+            processed += l
 
         for decl in tmp_map:
             bases = self.listBases(decl)
