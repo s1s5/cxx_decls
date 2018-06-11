@@ -28,11 +28,14 @@ class FunctionConverter(converter.Converter):
         return False
 
     def getName(self):
+        suffix = ''
+        if hasattr(self.decl, '_objc_name'):
+            suffix = self.decl._objc_name
         l = self.decl.path.split('::')
         if len(l) == 1:
-            return self.creator.settings['global_prefix'] + l[0]
+            return self.creator.settings['global_prefix'] + l[0] + suffix
         else:
-            return l[-1]
+            return l[-1] + suffix
 
     def getUid(self):
         n = self.getName()

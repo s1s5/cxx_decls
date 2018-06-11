@@ -77,8 +77,17 @@ def parseType(decl_or_type):
         # print(decl.path)
         # print(decl.type)
         # print(type(decl.type))
-    if isinstance(decl_or_type, bc.ClassTemplateSpecializationDecl):
+    if decl_or_type and 'bb_usr_anonymous_namespace' in decl_or_type.path:
         decl_or_type = None
+    if isinstance(decl_or_type, bc.ClassTemplateSpecializationDecl):
+        for i in decl_or_type.templateArgs:
+            # print("=" * 80)
+            # print(i.type)
+            # i.show()
+            if 'bb_usr_anonymous_namespace' in i.type.decl.path:
+                decl_or_type = None
+                break
+        # decl_or_type = None
     return decl_or_type, is_const
 
 
@@ -156,7 +165,7 @@ class ClassReturnConverter(return_converter.ReturnConverter):
             source << "_ret_val->ref = self;"
             source << "_ret_val->is_ref = YES;"
         else:
-            source << "_ret_val->impl = new %s(_ret_);" % (decl.cname(), )
+            source << "_ret_val->impl = new %s(_ret_);" % (decl.path, )
             source << "_ret_val->is_ref = NO;"
         source << "return _ret_val;"
 
@@ -186,7 +195,10 @@ class CXXConstructorConverter(function_converter.FunctionConverter):
         return False
 
     def getName(self):
-        return "init"
+        suffix = ''
+        if hasattr(self.decl, '_objc_name'):
+            suffix = self.decl._objc_name
+        return "init" + suffix
 
     def getReturnConverter(self):
         return CXXConstructorReturnConverter(
@@ -194,7 +206,7 @@ class CXXConstructorConverter(function_converter.FunctionConverter):
 
     def getCCallString(self):
         l = map(lambda x: x.getCCall(), self.arg_converters)
-        return 'new %s(%s)' % (self.decl.path, ', '.join(l))
+        return 'new %s(%s)' % ('::'.join(self.decl.path.split('::')[:-1]), ', '.join(l))
 
 
 class CXXGetterConverter(function_converter.FunctionConverter):
@@ -296,10 +308,18 @@ class ClassPlugin(plugin.Plugin):
         return self.__getConverter(l, ret_type, func_conv)
 
     def declare(self, decl):
+        # print("!" * 80)
+        # print("field !!")
+        # print(decl)
+        # print(isinstance(decl, bc.RecordDecl))
+
         if not isinstance(decl, bc.RecordDecl):
             return False
-        if decl.describedClassTemplate is not None:
-            return False
+        # print("decl.describedClassTemplate: ", decl.describedClassTemplate)
+        # TODO: bug fix,,,
+        # if decl.describedClassTemplate is not None:
+        #     return False
+        # print("access = ", decl.access)
         if decl.access != "public" and decl.access != "none":
             return False
 
@@ -320,7 +340,11 @@ class ClassPlugin(plugin.Plugin):
             conv = self.creator.getFunctionConverter(i)
             nc.addFunction(conv)
 
+        # print("=" * 80)
+        # print("field !!")
+        # print(decl)
         for field in self.listAllFields(decl):
+            # print(field)
             ft = field.type
             if isinstance(ft, bc.SubstTemplateTypeParmType):
                 ft = ft.sugar
@@ -403,7 +427,8 @@ class ClassPlugin(plugin.Plugin):
         if not d:
             return
         self.classes.add(d)
-        self.class_indexes[d] = len(self.class_indexes)
+        if d not in self.class_indexes:
+            self.class_indexes[d] = len(self.class_indexes)
 
     def linkEnd(self):
         l = sorted(self.classes, key=lambda x: x.path)
@@ -429,6 +454,10 @@ class ClassPlugin(plugin.Plugin):
                 cc = self.creator.getClass(cc)
                 nc = self.creator.getClass(nc)
 
+                # print("=" * 80)
+                # print(decl)
+                # print(cc.funcs)
+                # print(nc.funcs)
                 if True or cc.funcs:
                     ccp = self.creator.getClass(
                         'Api_' + cc.name, objc_class.ObjCProtocol)
@@ -516,17 +545,31 @@ class ClassPlugin(plugin.Plugin):
         bases = self.listBases(decl)
         declared = set()
         overriden = set()
+
+        signatures = set()
+        dup_methods = {}
+
+        def calc_signature(d):
+            fname = d.path.split('::')[-1]
+            # return fname, tuple([self.creator.resolveClass(x.type)[1] for x in d.params])
+            return fname, tuple([x.name if x.name else self.creator.resolveClass(x.type)[1]
+                                 for x in d.params])
+
         if not const:
             if (decl.hasDefaultConstructor and
-                    (not decl.hasUserDeclaredConstructor)):
+                    (not decl.hasUserDeclaredConstructor) and decl.needsImplicitDefaultConstructor):
                 flag = True
                 for c in decl.ctors:
                     if len(c.params) == 0:
                         flag = False
                 if flag and (not decl.isAbstract):
-                    declared.add(
-                        bc.CXXConstructorDecl(decl.path, None, bc.BuiltinType(
-                            "void"), [], decl))
+                    d = bc.CXXConstructorDecl(decl.path, None, bc.BuiltinType("void"), [], decl)
+
+                    dl = dup_methods.get('init', [])
+                    dl.append(d)
+                    dup_methods['init'] = dl
+                    declared.add(d)
+
             # declared.update(decl.ctors)
         for d in [decl] + bases:
             for i in d.methods:
@@ -542,8 +585,50 @@ class ClassPlugin(plugin.Plugin):
                     continue
                 if i.name.startswith('operator'):
                     continue
+                if i.isDeleted:
+                    continue
+
+                # if 'StaticOutputStream' in decl.path and isinstance(i, bc.CXXConstructorDecl):
+                #     print("=" * 80)
+                #     print(i)
+
+                sign = calc_signature(i)
+                if sign in signatures:
+                    continue
+                signatures.add(calc_signature(i))
+
                 declared.add(i)
                 map(overriden.add, i.overridden_methods)
+
+                fname = i.path.split('::')[-1]
+                if isinstance(i, bc.CXXConstructorDecl):
+                    fname = 'init'
+                dl = dup_methods.get(fname, [])
+                dl.append(i)
+                dup_methods[fname] = dl
+
+        for fname, flist in dup_methods.items():
+            # if 'StaticOutputStream' in decl.path:
+            #     print("=" * 80)
+            #     print(decl)
+            #     print(flist)
+            #     decl.show()
+
+            if len(flist) <= 1:
+                continue
+
+            arg_infos = [calc_signature(x)[1] for x in flist]
+            rename = {}
+            for d, arg in zip(flist, arg_infos):
+                if not 'x'.join(arg):
+                    continue
+                l = rename.get(len(arg), [])
+                l.append((d, arg))
+                rename[len(arg)] = l
+
+            for len_arg, rename_list in rename.items():
+                for d, arg in rename_list:
+                    d._objc_name = str(len_arg) + '_' + '_'.join(x.replace('_', '') for x in arg)
 
         declared.difference_update(overriden)
         m = list(declared)
