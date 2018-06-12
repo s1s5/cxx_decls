@@ -27,7 +27,7 @@ import function_pointer_plugin
 
 class Creator(plugin.Plugin):
 
-    def __init__(self):
+    def __init__(self, **options):
         super(Creator, self).__init__(None, None, None)
         self.settings = {
             'base_class_name': 'bb_BaseClass',
@@ -35,6 +35,8 @@ class Creator(plugin.Plugin):
             'global_prefix': 'bb_',
             'lightweight_generics': True,
         }
+        self.settings.update(options)
+
         self.plugin_types = []
         self.addPlugin(unsupported_plugin.UnsupportedPlugin)
         self.addPlugin(function_plugin.FunctionPlugin)
@@ -255,7 +257,7 @@ def main(args, options):
     ds = map(lambda x: json.loads(open(x).read()), args)
     d = bc.mergeJson(*ds)
     o = bc.loadJson(d)
-    c = Creator()
+    c = Creator(**json.loads(options.creator_options))
     c.settings['lightweight_generics'] = options.lightweight_generics
     c.set(o)
     c.link()
@@ -267,7 +269,6 @@ def entry_point():
     parser = argparse.ArgumentParser(
         description=u'',  # プログラムの説明
     )
-    parser.add_argument("args", nargs="+")
     parser.add_argument(
         "--dst-header", default="objcif.h", type=str, dest="dst_header")
     parser.add_argument(
@@ -281,6 +282,8 @@ def entry_point():
                         default=True,
                         action='store_false',
                         dest="lightweight_generics")
+    parser.add_argument("--creator-options", default="{}")
+    parser.add_argument("args", nargs="+")
     o = parser.parse_args()
     main(o.args, o)
 
