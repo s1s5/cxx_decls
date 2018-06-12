@@ -22,6 +22,7 @@ import builtin_vector_plugin
 import class_vector_plugin
 import unsupported_plugin
 import string_vector_plugin
+import function_pointer_plugin
 
 
 class Creator(plugin.Plugin):
@@ -47,6 +48,7 @@ class Creator(plugin.Plugin):
         self.addPlugin(class_vector_plugin.ClassVectorPlugin)
         self.addPlugin(builtin_vector_plugin.BuiltinVectorPlugin)
         self.addPlugin(string_vector_plugin.StringVectorPlugin)
+        self.addPlugin(function_pointer_plugin.FunctionPointerPlugin)
 
     def set(self, js):
         for i in js.diagnostics:

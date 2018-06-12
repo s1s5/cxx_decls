@@ -1144,6 +1144,7 @@ class Expr(ClangRoot):
 
 vector_regex = re.compile('std::.*::vector')
 string_regex = re.compile('std::.*::(basic_)?string')
+function_regex = re.compile('std::.*::function')
 
 
 def is_std_vector(decl):
@@ -1156,6 +1157,12 @@ def is_std_string(decl):
     return (
         decl.path == 'std::string' or
         string_regex.match(decl.path))
+
+
+def is_std_function(decl):
+    return (
+        decl.path == 'std::function' or
+        function_regex.match(decl.path))
 
 
 builtin_types = {

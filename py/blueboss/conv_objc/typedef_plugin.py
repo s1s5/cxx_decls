@@ -21,7 +21,7 @@ class TypedefPlugin(plugin.Plugin):
             return True
 
     def resolveClass(self, decl_or_type):
-        return self.creator.resolveClass(_get(decl_or_type))
+        return self.creator.resolveClass(_get(decl_or_type)[0])
 
     def getArgConverter(self, arg_decl, func_decl):
         cxx_type = arg_decl.type

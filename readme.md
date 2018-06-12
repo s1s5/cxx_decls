@@ -36,3 +36,7 @@ $ docker run -i --rm -v `pwd`:/work s1s5/cxx_decls objc cxx2objc a.json > /tmp/t
 
 ## DEBUG
 docker run -i --rm -e PYTHONPATH=/work/py -v `pwd`:/work s1s5/cxx_decls objc cxx2objc a.json
+
+
+docker run -i --rm -v `pwd`/examples/function_ptr.hpp:/work/sandbox.hpp s1s5/cxx_decls json -std=c++1z sandbox.hpp > a.json
+docker run -i --rm -e PYTHONPATH=/work/py -v `pwd`:/work s1s5/cxx_decls objc sandbox a.json | tar -xC /tmp/objc-if/
